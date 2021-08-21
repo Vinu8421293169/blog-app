@@ -1,8 +1,17 @@
-const UserModel = require("../models/app.js");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+import { NextFunction, Request, Response } from "express";
 
-const signup = async (req, res) => {
+import UserModel from "../models/app.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+
+export interface User {
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  password: string;
+}
+
+const signup = async (req: Request, res: Response) => {
   const { email, password, firstName, lastName } = req.body;
 
   if (await UserModel.findOne({ email })) {
@@ -16,7 +25,7 @@ const signup = async (req, res) => {
   const genSalt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, genSalt);
 
-  const user = { email, password: hashedPassword };
+  const user = { email, password: hashedPassword } as User;
 
   if (firstName) {
     user.firstName = firstName;
@@ -30,7 +39,7 @@ const signup = async (req, res) => {
     .then((_data) => {
       res.json({ status: "success", message: "Account successfully created" });
     })
-    .catch((err) => {
+    .catch((err: Error) => {
       res.json({
         status: "error",
         message: err.message || "error while creating account",
@@ -38,15 +47,11 @@ const signup = async (req, res) => {
     });
 };
 
-const login = async (req, res) => {
+const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  // if (!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email)) {
-  //   return res.status(200).json({ status: "error", message: "Invalid email" });
-  // }
-
   try {
-    const user = await UserModel.findOne({ email });
+    const user: any = await UserModel.findOne({ email });
 
     if (!user) {
       return res.status(400).json({
@@ -85,12 +90,12 @@ const login = async (req, res) => {
       maxAge: 60 * 5 * 1000, //miliseconds
       httpOnly: true,
       secure: true,
-      samesite: true,
+      sameSite: true,
     })
     .json({ status: "success", message: "Login successful" });
 };
 
-const getAllUsers = async (req, res) => {
+const getAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await UserModel.find();
     res.status(200).json({ status: "success", data: users });
@@ -102,7 +107,7 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-const checkToken = (req, res, next) => {
+const checkToken = (req: Request, res: Response, next: NextFunction) => {
   const token = req.cookies.token;
   if (!token) {
     return res.status(401).send({ status: "error", message: "Login required" });
@@ -110,7 +115,7 @@ const checkToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.data = decoded.data;
+    // req["data"] = decoded.data;
   } catch (err) {
     res.status(401).json({
       status: "error",
@@ -122,4 +127,4 @@ const checkToken = (req, res, next) => {
   next();
 };
 
-module.exports = { login, signup, checkToken, getAllUsers };
+export default { login, signup, checkToken, getAllUsers };

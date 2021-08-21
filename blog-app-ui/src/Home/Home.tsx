@@ -1,6 +1,5 @@
 import "./Home.css";
-import React from "react";
-import { alpha, makeStyles } from "@material-ui/core/styles";
+import { alpha, makeStyles, Theme } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import IconButton from "@material-ui/core/IconButton";
@@ -20,7 +19,7 @@ import { getData } from "../api";
 import { useState } from "react";
 import { useHistory } from "react-router";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   grow: {
     flexGrow: 1,
   },
@@ -88,7 +87,7 @@ export default function Home() {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
-  const [data, setData] = useState(null);
+  const [data, setData] = useState("");
   const history = useHistory();
 
   useEffect(() => {
@@ -107,7 +106,7 @@ export default function Home() {
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
-  const handleProfileMenuOpen = (event) => {
+  const handleProfileMenuOpen = (event: any) => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -120,7 +119,7 @@ export default function Home() {
     handleMobileMenuClose();
   };
 
-  const handleMobileMenuOpen = (event) => {
+  const handleMobileMenuOpen = (event: any) => {
     setMobileMoreAnchorEl(event.currentTarget);
   };
 
@@ -230,7 +229,7 @@ export default function Home() {
                 aria-label="account of current user"
                 aria-controls={menuId}
                 aria-haspopup="true"
-                onClick={handleProfileMenuOpen}
+                onClick={(e) => handleProfileMenuOpen(e)}
                 color="inherit"
               >
                 <AccountCircle />

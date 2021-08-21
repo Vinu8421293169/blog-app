@@ -16,7 +16,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { useState } from "react";
 import { postData } from "../api";
 import { useHistory } from "react-router";
-import { FormControl, FormHelperText } from "@material-ui/core";
+import { FormControl, FormHelperText, Theme } from "@material-ui/core";
 
 function Copyright() {
   return (
@@ -31,7 +31,7 @@ function Copyright() {
   );
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   root: {
     height: "100vh",
   },
@@ -71,7 +71,7 @@ export default function SignInSide() {
   const [error, setError] = useState("");
   const history = useHistory();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: any) => {
     e.preventDefault();
     const email = e.target.email.value.trim();
     const password = e.target.password.value.trim();
@@ -95,22 +95,28 @@ export default function SignInSide() {
     postData("/login", {
       email,
       password,
-    }).then((_data) => {
-      if (_data.status === "success") {
-        return history.push("/");
-      }
+    }).then(
+      (_data: {
+        status: string;
+        errorType: any;
+        message: React.SetStateAction<string>;
+      }) => {
+        if (_data.status === "success") {
+          return history.push("/");
+        }
 
-      switch (_data.errorType) {
-        case "email":
-          setEmailError(_data.message);
-          break;
-        case "password":
-          setPasswordError(_data.message);
-          break;
-        default:
-          setError(_data.message);
+        switch (_data.errorType) {
+          case "email":
+            setEmailError(_data.message);
+            break;
+          case "password":
+            setPasswordError(_data.message);
+            break;
+          default:
+            setError(_data.message);
+        }
       }
-    });
+    );
   };
 
   return (
@@ -125,7 +131,11 @@ export default function SignInSide() {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
-          <form className={classes.form} onSubmit={handleSubmit} noValidate>
+          <form
+            className={classes.form}
+            onSubmit={(e) => handleSubmit(e)}
+            noValidate
+          >
             <TextField
               variant="outlined"
               margin="normal"
@@ -162,8 +172,7 @@ export default function SignInSide() {
             <FormControl
               component="fieldset"
               error={!!error}
-              helperText={error}
-              className={classes.formControl}
+              // className={classes.formControl}
             >
               <FormHelperText>{error}</FormHelperText>
             </FormControl>

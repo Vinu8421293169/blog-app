@@ -19,7 +19,7 @@ const postData = async (route = "", data = {}) => {
   return response.json(); // parses JSON response into native JavaScript objects
 };
 
-const getData = async (route) => {
+const getData = async (route: string) => {
   const url = route;
   const response = await fetch(url, {
     method: "GET",
