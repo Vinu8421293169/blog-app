@@ -44,6 +44,10 @@ app.get("/csrf-token", (req, res) => {
 
 app.get("/users", appRoute.checkToken, csrfProtection, appRoute.getAllUsers);
 
+app.post("/forgetPassword", appRoute.forgetPassword );
+
+app.post("/resetPassword", appRoute.resetPassword);
+
 // mongoose connection
 mongoose
   .connect(process.env.MONGODB_URI, {

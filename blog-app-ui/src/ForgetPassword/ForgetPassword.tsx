@@ -49,59 +49,86 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export default function ForgetPassword() {
   const classes = useStyles();
+  const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [newPasswordError, setNewPasswordError] = useState("");
+  const [otpError, setOtpError] = useState("");
   const [isResetPassword, setIsResetPassword] = useState(false);
   const [error, setError] = useState("");
   const history = useHistory();
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    const email = e.target.email.value.trim();
 
-    if (!email) {
-      return setEmailError("email is required");
-    }
+    if (!isResetPassword) {
+      if (!email) {
+        return setEmailError("email is required");
+      }
 
-    if (
-      !/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-        email
-      )
-    ) {
-      return setEmailError("Invalid email");
-    }
+      if (
+        !/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+          email
+        )
+      ) {
+        return setEmailError("Invalid email");
+      }
 
-    if (isResetPassword) {
       postData("/forgetPassword", {
         email,
-      }).then((_data) => {
-        if (_data.status === "success") {
-          return setIsResetPassword(true);
-        }
+      })
+        .then((_data) => {
+          if (_data.status === "success") {
+            return setIsResetPassword(true);
+          }
 
-        switch (_data.errorType) {
-          case "email":
-            setEmailError(_data.message);
-            break;
-          default:
-            setError(_data.message);
-        }
-      });
+          switch (_data.errorType) {
+            case "email":
+              setEmailError(_data.message);
+              break;
+            default:
+              setError(_data.message);
+          }
+        })
+        .catch((error) => {
+          switch (error.errorType) {
+            case "email":
+              setEmailError(error.message);
+              break;
+            default:
+              setError(error.message);
+          }
+        });
     } else {
-      const password = e.target.password;
-      if (password !== e.target.newPassword) {
-        return setNewPasswordError("New password is not corret");
+      const password = e.target.password.value;
+      const otp = e.target.otp.value;
+      if (!otp) {
+        return setOtpError("OTP is required");
+      }
+
+      if (password !== e.target.newPassword.value) {
+        return setNewPasswordError("New password is not correct");
       }
       postData("/resetPassword", {
+        otp,
         email,
         password,
-      }).then((_data) => {
-        if (_data.status === "success") {
-          return history.push("./");
-        }
-
-        setError("error while connecting to server");
-      });
+      })
+        .then((_data) => {
+          if (_data.status === "success") {
+            return history.push("/");
+          }
+          if (_data.errorType === "otp") {
+            return setOtpError(_data.message);
+          }
+          setError(_data.message);
+        })
+        .catch((error) => {
+          if (error.errorType === "otp") {
+            setOtpError(error.message);
+          }
+          console.log(error);
+          setError(error.message);
+        });
     }
   };
 
@@ -130,12 +157,27 @@ export default function ForgetPassword() {
                 margin="normal"
                 required
                 fullWidth
+                id="otp"
+                label="OTP"
+                name="otp"
+                type="number"
+                autoComplete="otp"
+                autoFocus
+                error={!!otpError}
+                helperText={otpError}
+                onChange={() => setOtpError("")}
+              />
+              <TextField
+                variant="outlined"
+                margin="normal"
+                required
+                fullWidth
                 id="password"
                 label="Password"
                 name="password"
+                type="password"
                 autoComplete="password"
                 autoFocus
-                onChange={(e) => setEmailError("")}
               />
               <TextField
                 variant="outlined"
@@ -147,9 +189,10 @@ export default function ForgetPassword() {
                 name="newPassword"
                 autoComplete="password"
                 autoFocus
+                type="password"
                 error={!!newPasswordError}
                 helperText={newPasswordError}
-                onChange={(e) => setNewPasswordError("")}
+                onChange={() => setNewPasswordError("")}
               />
               <FormControl component="fieldset" error={!!error}>
                 <FormHelperText>{error}</FormHelperText>
@@ -188,7 +231,10 @@ export default function ForgetPassword() {
                 autoFocus
                 error={!!emailError}
                 helperText={emailError}
-                onChange={(e) => setEmailError("")}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setEmailError("");
+                }}
               />
               <FormControl component="fieldset" error={!!error}>
                 <FormHelperText>{error}</FormHelperText>
